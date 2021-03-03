@@ -1,0 +1,39 @@
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	  <PropertyGroup>
+		    <MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\MSBuildCommunity</MSBuildCommunityTasksPath>
+	  </PropertyGroup>
+	<Import Project="MSBuildCommunity\MSBuild.Community.Tasks.Targets"/>
+	<ItemGroup>
+		<ToBuild Include="Tag\build.proj" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<OutputDir>TagDir</OutputDir>
+		<SourcesZip>NHook-src-$(Version).zip</SourcesZip>
+		<BinZip>NHook-bin-$(Version).zip</BinZip>
+	</PropertyGroup>
+	
+	<Target Name="Build">
+		<Error Text="Run tag.bat version svnlog svnpass" Condition="'$(Version)' == ''" ContinueOnError="false"></Error>
+		<Error Text="Run tag.bat version svnlog svnpass" Condition="'$(SvnLogin)' == ''" ContinueOnError="false"></Error>
+		<Error Text="Run tag.bat version svnlog svnpass" Condition="'$(SvnPassword)' == ''" ContinueOnError="false"></Error>
+		<RemoveDir Directories="$(OutputDir)"></RemoveDir>
+		<SvnExport RepositoryPath="https://nhook.svn.codeplex.com/svn/trunk"
+		  LocalPath="$(OutputDir)" Username="$(SvnLogin)" Password="$(SvnPassword)" 
+		    >
+			<Output TaskParameter="Revision" PropertyName="Revision" />
+		</SvnExport>
+		<ItemGroup>
+			<Sources Include="$(OutputDir)\**\*.*"></Sources>
+			<Bins Include="$(OutputDir)\NHook\bin\Release\**\*.*"></Bins>
+		</ItemGroup>
+		
+		
+		<Zip Files="@(Sources)"
+                    ZipFileName="$(SourcesZip)" />
+		<MSBuild Projects="$(OutputDir)\NHook\NHook.csproj" Properties="Configuration=Release"></MSBuild>
+		<Zip Files="@(Bins)"
+                    ZipFileName="$(BinZip)" />
+		<RemoveDir Directories="$(OutputDir)"></RemoveDir>
+	</Target>
+</Project>
